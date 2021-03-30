@@ -32,6 +32,7 @@ func main() {
 	flagSet := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	v := flagSet.Bool("v", false, "if set, enable DEBUG level logging")
 	vv := flagSet.Bool("vv", false, "if set, enable TRACE level logging")
+	port := flagSet.String("p", "18443", "port to listen")
 	usage := func() {
 		fmt.Fprintf(os.Stderr, "%s", usageStr)
 		flagSet.PrintDefaults()
@@ -58,10 +59,10 @@ func main() {
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc(apnsRequestPath, apnsHandler)
 	// default start HTTP/1.1 on :18443
-	srv := &http.Server{Addr: ":18443", Handler: mux}
+	srv := &http.Server{Addr: ":" + *port, Handler: mux}
 
 	// start TLS(http/2)
-	log.Info("Serving on https://0.0.0.0:18443")
+	log.Info("Serving on https://0.0.0.0:" + *port)
 	log.Debug("Loading key and certificate")
 	log.Fatal(srv.ListenAndServeTLS("cert/server.crt", "cert/server_plain.key"))
 }
