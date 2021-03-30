@@ -12,13 +12,13 @@ import (
 // APNS handler
 func apnsHandler(w http.ResponseWriter, r *http.Request) {
 
-	log.Debug("Got connection: ", r.Proto)
+	log.Debug("APNS Request - Got connection: ", r.Proto)
 
 	// Set APNS ID into response header
 	setApnsId(w, r)
 
 	// Check Request Method
-	log.Debug("Request Method: ", r.Method)
+	log.Debug("APNS Request - Request Method: ", r.Method)
 	if strings.ToUpper(r.Method) != "POST" {
 		apnsRespError(w, http.StatusMethodNotAllowed, "MethodNotAllowed")
 		return
@@ -28,9 +28,9 @@ func apnsHandler(w http.ResponseWriter, r *http.Request) {
 
 	regExDeviceToken := regexp.MustCompile("^[[:xdigit:]]+$")
 	deviceToken := r.URL.Path[len(apnsRequestPath):]
-	log.Debug("Device Token: ", deviceToken)
+	log.Debug("APNS Request - Device Token: ", deviceToken)
 	matched := regExDeviceToken.MatchString(deviceToken)
-	log.Debug("Does Device Token match hexadecimal digit? ", matched)
+	log.Debug("APNS Request - Does Device Token match hexadecimal digit? ", matched)
 	if !matched {
 		apnsRespError(w, http.StatusBadRequest, "BadDeviceToken")
 		return
@@ -38,7 +38,7 @@ func apnsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check APNS Topic
 	apnsTopic := r.Header.Get("apns-topic")
-	log.Debug("APNS Topic: ", apnsTopic)
+	log.Debug("APNS Request - APNS Topic: ", apnsTopic)
 	if apnsTopic == "" {
 		apnsRespError(w, http.StatusBadRequest, "MissingTopic")
 		return
@@ -59,5 +59,5 @@ func apnsRespError(w http.ResponseWriter, statusCode int, desc string) {
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(desc))
-	log.Info(statusCode, " - ", desc)
+	log.Debug("APNS Request - ", statusCode, " - ", desc)
 }
