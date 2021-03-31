@@ -1,2 +1,4 @@
 /go.sum
 .vscode
+http2mock
+http2mock.exe

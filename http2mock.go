@@ -21,7 +21,11 @@ Usage:
 Flags:
 `
 
+// APNS Mock Request Path
 const apnsRequestPath = "/3/device/"
+
+// VUI Mock Request Path
+const vuiRequestPath = "/vui/VuiServlet"
 
 func main() {
 
@@ -53,8 +57,10 @@ func main() {
 	})
 
 	mux := http.NewServeMux()
+	// Router
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc(apnsRequestPath, apnsHandler)
+	mux.HandleFunc(vuiRequestPath, vuiHandler)
 	// default start HTTP/1.1 on :18443
 	srv := &http.Server{Addr: ":" + *port, Handler: mux}
 
