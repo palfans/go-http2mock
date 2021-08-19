@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/html/charset"
 )
 
 type vuiRequestStruct struct {
@@ -203,6 +206,13 @@ func parseRequestBody(r *http.Request) *vuiRequestStruct {
 	}
 	log.Debug("VUI Request - ", "Received body ", string(body))
 	requestBody := &vuiRequestStruct{}
-	xml.Unmarshal(body, requestBody)
+	//err = xml.Unmarshal(body, requestBody)
+	reader := bytes.NewReader(body)
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = charset.NewReaderLabel
+	err = decoder.Decode(requestBody)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	return requestBody
 }
