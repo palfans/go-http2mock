@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net/http"
@@ -26,6 +27,11 @@ const apnsRequestPath = "/3/device/"
 
 // VUI Mock Request Path
 const vuiRequestPath = "/vui/VuiServlet"
+
+type Certificates struct {
+	CertFile string
+	KeyFile  string
+}
 
 func main() {
 
@@ -56,18 +62,44 @@ func main() {
 		NoColors:        false,
 	})
 
+	var certs []Certificates
+	certs = append(certs, Certificates{
+		CertFile: "cert/server.crt",
+		KeyFile:  "cert/server_plain.key",
+	})
+	certs = append(certs, Certificates{
+		CertFile: "cert/apple.crt",
+		KeyFile:  "cert/server_plain.key",
+	})
+	certs = append(certs, Certificates{
+		CertFile: "cert/intrado.crt",
+		KeyFile:  "cert/server_plain.key",
+	})
+
+	cfg := &tls.Config{}
+	cfg.Certificates = make([]tls.Certificate, len(certs))
+	var err error
+	for i, v := range certs {
+		cfg.Certificates[i], err = tls.LoadX509KeyPair(v.CertFile, v.KeyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cfg.BuildNameToCertificate()
+
 	mux := http.NewServeMux()
 	// Router
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc(apnsRequestPath, apnsHandler)
 	mux.HandleFunc(vuiRequestPath, vuiHandler)
 	// default start HTTP/1.1 on :18443
-	srv := &http.Server{Addr: ":" + *port, Handler: mux}
+	srv := &http.Server{Addr: ":" + *port, Handler: mux, TLSConfig: cfg}
 
 	// start TLS(http/2)
 	log.Info("Serving on https://0.0.0.0:" + *port)
 	log.Debug("Loading key and certificate")
-	log.Fatal(srv.ListenAndServeTLS("cert/server.crt", "cert/server_plain.key"))
+	log.Fatal(srv.ListenAndServeTLS("", ""))
 }
 
 // Default handler
